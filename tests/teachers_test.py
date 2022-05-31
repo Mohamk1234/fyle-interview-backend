@@ -12,6 +12,17 @@ def test_get_assignments_teacher_1(client, h_teacher_1):
         assert assignment['state'] == 'SUBMITTED'
 
 
+def test_get_assignments_teacher_3(client, h_teacher_3):
+    response = client.get(
+        '/teacher/assignments',
+        headers=h_teacher_3
+    )
+
+    data = response.json['data']
+    assert data == []
+
+
+
 def test_get_assignments_teacher_2(client, h_teacher_2):
     response = client.get(
         '/teacher/assignments',
