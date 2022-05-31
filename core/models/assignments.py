@@ -1,4 +1,6 @@
 import enum
+
+from flask import Response
 from core import db
 from core.apis.decorators import Principal
 from core.libs import helpers, assertions
@@ -65,6 +67,8 @@ class Assignment(db.Model):
         assertions.assert_found(assignment, 'No assignment with this id was found')
         assertions.assert_valid(assignment.student_id == principal.student_id, 'This assignment belongs to some other student')
         assertions.assert_valid(assignment.content is not None, 'assignment with empty content cannot be submitted')
+        assertions.assert_valid(assignment.state == AssignmentStateEnum.DRAFT,
+                                    'only a draft assignment can be submitted')
 
         assignment.teacher_id = teacher_id
         assignment.state = AssignmentStateEnum.SUBMITTED
@@ -75,3 +79,26 @@ class Assignment(db.Model):
     @classmethod
     def get_assignments_by_student(cls, student_id):
         return cls.filter(cls.student_id == student_id).all()
+
+    @classmethod
+    def get_assignments_by_teacher(cls, teacher_id):
+        return cls.filter(cls.teacher_id == teacher_id, cls.state=='SUBMITTED').all()
+
+    @classmethod
+    def set_grade(cls, assignment_new: 'Assignment', principal:Principal):
+        if assignment_new.id is not None:
+            assignment = Assignment.get_by_id(assignment_new.id)
+            assertions.assert_found(assignment, 'No assignment with this id was found')
+            assertions.assert_valid(assignment.teacher_id==principal.teacher_id,
+                                    'assignment was not submitted to current teacher')
+            assertions.assert_valid(assignment.state == AssignmentStateEnum.SUBMITTED,
+                                    'only assignment in submitted state can be graded')
+            assertions.assert_valid(assignment_new.grade in GradeEnum._member_names_,
+                                    'grade not allowed' )
+
+            assignment.grade = assignment_new.grade
+            assignment.state = AssignmentStateEnum.GRADED
+        else:
+            print("in else")
+        db.session.flush()
+        return assignment

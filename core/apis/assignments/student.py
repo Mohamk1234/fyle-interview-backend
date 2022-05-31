@@ -19,7 +19,7 @@ def list_assignments(p):
 
 @student_assignments_resources.route('/assignments', methods=['POST'], strict_slashes=False)
 @decorators.accept_payload
-@decorators.auth_principal
+@decorators.auth_principal 
 def upsert_assignment(p, incoming_payload):
     """Create or Edit an assignment"""
     assignment = AssignmentSchema().load(incoming_payload)

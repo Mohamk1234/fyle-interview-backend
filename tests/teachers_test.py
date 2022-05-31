@@ -61,7 +61,7 @@ def test_grade_assignment_bad_grade(client, h_teacher_1):
     assert response.status_code == 400
     data = response.json
 
-    assert data['error'] == 'ValidationError'
+    assert data['error'] == 'FyleError'
 
 
 def test_grade_assignment_bad_assignment(client, h_teacher_1):
@@ -83,13 +83,39 @@ def test_grade_assignment_bad_assignment(client, h_teacher_1):
     assert data['error'] == 'FyleError'
 
 
-def test_grade_assignment_draft_assignment(client, h_teacher_1):
+def test_grade_assignment_draft_assignment(client, h_teacher_2):
     """
     failure case: only a submitted assignment can be graded
     """
     response = client.post(
         '/teacher/assignments/grade',
-        headers=h_teacher_1
+        headers=h_teacher_2
+        , json={
+            "id": 5,
+            "grade": "A"
+        }
+    )
+
+    assert response.status_code == 400
+    data = response.json
+
+    assert data['error'] == 'FyleError'
+
+def test_grade_assignment_graded_assignment(client, h_teacher_2):
+    """
+    failure case: already graded assignments cannot be graded
+    """
+    res= client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_2
+        , json={
+            "id": 2,
+            "grade": "A"
+        }
+    )
+    response = client.post(
+        '/teacher/assignments/grade',
+        headers=h_teacher_2
         , json={
             "id": 2,
             "grade": "A"
